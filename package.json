@@ -4,13 +4,13 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "@okta/oidc-middleware": "0.0.6",
+    "@okta/oidc-middleware": "5.5.0",
     "consolidate": "^0.15.1",
     "express": "^4.21.2",
   "dotenv": "^16.3.1",
     "express-openid-connect": "^2.19.2",
-    "express-session": "^1.15.6",
-    "socket.io": "^1.7.4",
+    "express-session": "^1.18.2",
+    "socket.io": "^4.8.1",
     "swig": "^1.4.2"
   },
   "scripts": {
