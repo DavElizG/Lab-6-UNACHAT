@@ -16,26 +16,30 @@ require('dotenv').config();
 // Globals (loaded from environment)
 const PORT = process.env.PORT || "3000";
 const SECRET = process.env.SECRET || 'a_long_default_dev_secret_change_me';
+// Use BASE_URL consistently; required by some OIDC libraries as appBaseUrl
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 const OKTA_ISSUER_URI = process.env.ISSUER_BASE_URL || "https://una-infosec.us.auth0.com/";
 const OKTA_CLIENT_ID = process.env.CLIENT_ID || "mlIokKRjb5CGf8FbKpDIOKE36e7BjDLA";
 const OKTA_CLIENT_SECRET = process.env.CLIENT_SECRET || "replace-with-env-secret";
-const REDIRECT_URI = process.env.REDIRECT_URI || "http://localhost:3000/dashboard";
+const REDIRECT_URI = process.env.REDIRECT_URI || `${BASE_URL}/dashboard`;
 
 //  Auth configuration (uses express-openid-connect). Secrets/IDs come from env.
 const config = {
   authRequired: false,
   auth0Logout: true,
   secret: SECRET,
-  baseURL: process.env.BASE_URL || 'http://localhost:3000',
-  clientID: process.env.CLIENT_ID || 'mlIokKRjb5CGf8FbKpDIOKE36e7BjDLA',
-  issuerBaseURL: process.env.ISSUER_BASE_URL || 'https://una-infosec.us.auth0.com'
+  baseURL: BASE_URL,
+  clientID: OKTA_CLIENT_ID,
+  issuerBaseURL: OKTA_ISSUER_URI
 };
 
+// Provide appBaseUrl to satisfy @okta/oidc-middleware configuration validation
 let oidc = new ExpressOIDC({
   issuer: OKTA_ISSUER_URI,
   client_id: OKTA_CLIENT_ID,
   client_secret: OKTA_CLIENT_SECRET,
   redirect_uri: REDIRECT_URI,
+  appBaseUrl: BASE_URL,
   routes: { callback: { defaultRedirect: REDIRECT_URI } },
   scope: 'openid profile'
 });
