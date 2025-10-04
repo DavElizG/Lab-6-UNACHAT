@@ -58,7 +58,9 @@ app.use("/static", express.static("static"));
 
 app.use(session({
   cookie: { httpOnly: true },
-  secret: SECRET
+  secret: SECRET,
+  resave: false,
+  saveUninitialized: false
 }));
 
 // App routes
@@ -78,7 +80,10 @@ app.get("/dashboard", requiresAuth() ,(req, res) => {
 });
 
 const openIdClient = require('openid-client');
-openIdClient.Issuer.defaultHttpOptions.timeout = 20000;
+// Set default HTTP options if they exist
+if (openIdClient.Issuer.defaultHttpOptions) {
+  openIdClient.Issuer.defaultHttpOptions.timeout = 20000;
+}
 
 oidc.on("ready", () => {
   console.log("Server running on port: " + PORT);
