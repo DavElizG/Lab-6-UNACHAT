@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "@okta/oidc-middleware": "5.5.0",
-    "consolidate": "^0.15.1",
+    "consolidate": "^0.16.0",
     "express": "^4.21.2",
   "dotenv": "^16.3.1",
     "express-openid-connect": "^2.19.2",
