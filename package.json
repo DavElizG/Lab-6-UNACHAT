@@ -6,16 +6,21 @@
   "dependencies": {
     "@okta/oidc-middleware": "5.5.0",
     "consolidate": "^0.15.1",
+    "dotenv": "^16.3.1",
     "express": "^4.21.2",
-  "dotenv": "^16.3.1",
     "express-openid-connect": "^2.19.2",
     "express-session": "^1.18.2",
     "socket.io": "^4.8.1",
     "swig": "^1.4.2"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "author": "UNA",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^9.38.0"
+  }
 }
