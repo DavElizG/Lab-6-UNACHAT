@@ -6,9 +6,9 @@ const session = require('express-session');
 const ExpressOIDC = require('@okta/oidc-middleware').ExpressOIDC;
 const { auth } = require('express-openid-connect');
 const { requiresAuth } = require('express-openid-connect');
-var cons = require('consolidate');
-var path = require('path');
-let app = express();
+const cons = require('consolidate');
+const path = require('path');
+const app = express();
 
 // Load environment variables from .env
 require('dotenv').config();
@@ -34,7 +34,7 @@ const config = {
 };
 
 // Provide appBaseUrl to satisfy @okta/oidc-middleware configuration validation
-let oidc = new ExpressOIDC({
+const oidc = new ExpressOIDC({
   issuer: OKTA_ISSUER_URI,
   client_id: OKTA_CLIENT_ID,
   client_secret: OKTA_CLIENT_SECRET,
@@ -73,16 +73,16 @@ app.use(session({
 // App routes
 app.use(oidc.router);
 
-app.get('/',  (req, res) => {
-  res.render('index');  
+app.get('/', (req, res) => {
+  res.render('index');
 });
 
-app.get('/dashboard', requiresAuth() ,(req, res) => {  
+app.get('/dashboard', requiresAuth(), (req, res) => {
   // if(req.oidc.isAuthenticated())
   // {
-    var payload = Buffer.from(req.appSession.id_token.split('.')[1], 'base64').toString('utf-8');
-    const userInfo = JSON.parse(payload);
-    res.render('dashboard', { user: userInfo });
+  const payload = Buffer.from(req.appSession.id_token.split('.')[1], 'base64').toString('utf-8');
+  const userInfo = JSON.parse(payload);
+  res.render('dashboard', { user: userInfo });
   //}
 });
 
