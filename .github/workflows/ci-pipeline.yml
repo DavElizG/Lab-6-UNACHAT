@@ -114,7 +114,7 @@ jobs:
         run: npm ci
 
       - name: Run Snyk Security Test
-        uses: snyk/actions/node@cdb760004ba9ea4d525f2e043745dfe85bb9077e
+        uses: snyk/actions/node@0.4.0
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -170,7 +170,7 @@ jobs:
           REDIRECT_URI: http://localhost:3001/dashboard
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@e44258b109568baa0df60ed515561c0c32be803f
+        uses: SonarSource/sonarcloud-github-action@v3.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
