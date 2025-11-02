@@ -1,26 +1,26 @@
-"use strict";
+'use strict';
 
 // Imports
-const express = require("express");
-const session = require("express-session");
-const ExpressOIDC = require("@okta/oidc-middleware").ExpressOIDC;
+const express = require('express');
+const session = require('express-session');
+const ExpressOIDC = require('@okta/oidc-middleware').ExpressOIDC;
 const { auth } = require('express-openid-connect');
 const { requiresAuth } = require('express-openid-connect');
-var cons = require('consolidate');
-var path = require('path');
-let app = express();
+const cons = require('consolidate');
+const path = require('path');
+const app = express();
 
 // Load environment variables from .env
 require('dotenv').config();
 
 // Globals (loaded from environment)
-const PORT = process.env.PORT || "3000";
+const PORT = process.env.PORT || '3000';
 const SECRET = process.env.SECRET || 'a_long_default_dev_secret_change_me';
 // Use BASE_URL consistently; required by some OIDC libraries as appBaseUrl
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-const OKTA_ISSUER_URI = process.env.ISSUER_BASE_URL || "https://una-infosec.us.auth0.com/";
-const OKTA_CLIENT_ID = process.env.CLIENT_ID || "mlIokKRjb5CGf8FbKpDIOKE36e7BjDLA";
-const OKTA_CLIENT_SECRET = process.env.CLIENT_SECRET || "replace-with-env-secret";
+const OKTA_ISSUER_URI = process.env.ISSUER_BASE_URL || 'https://una-infosec.us.auth0.com/';
+const OKTA_CLIENT_ID = process.env.CLIENT_ID || 'mlIokKRjb5CGf8FbKpDIOKE36e7BjDLA';
+const OKTA_CLIENT_SECRET = process.env.CLIENT_SECRET || 'replace-with-env-secret';
 const REDIRECT_URI = process.env.REDIRECT_URI || `${BASE_URL}/dashboard`;
 
 //  Auth configuration (uses express-openid-connect). Secrets/IDs come from env.
@@ -34,7 +34,7 @@ const config = {
 };
 
 // Provide appBaseUrl to satisfy @okta/oidc-middleware configuration validation
-let oidc = new ExpressOIDC({
+const oidc = new ExpressOIDC({
   issuer: OKTA_ISSUER_URI,
   client_id: OKTA_CLIENT_ID,
   client_secret: OKTA_CLIENT_SECRET,
@@ -48,16 +48,23 @@ let oidc = new ExpressOIDC({
 app.use(auth(config));
 
 // MVC View Setup
-app.engine('html', cons.swig)
+app.engine('html', cons.swig);
 app.set('views', path.join(__dirname, 'views'));
 app.set('models', path.join(__dirname, 'models'));
 app.set('view engine', 'html');
 
+// Security middleware
+app.disable('x-powered-by'); // Disable X-Powered-By header
+
 // App middleware
-app.use("/static", express.static("static"));
+app.use('/static', express.static('static'));
 
 app.use(session({
-  cookie: { httpOnly: true },
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // Enable secure cookies in production
+    sameSite: 'strict' // Protect against CSRF
+  },
   secret: SECRET,
   resave: false,
   saveUninitialized: false
@@ -66,16 +73,16 @@ app.use(session({
 // App routes
 app.use(oidc.router);
 
-app.get("/",  (req, res) => {
-  res.render("index");  
+app.get('/', (req, res) => {
+  res.render('index');
 });
 
-app.get("/dashboard", requiresAuth() ,(req, res) => {  
+app.get('/dashboard', requiresAuth(), (req, res) => {
   // if(req.oidc.isAuthenticated())
   // {
-    var payload = Buffer.from(req.appSession.id_token.split('.')[1], 'base64').toString('utf-8');
-    const userInfo = JSON.parse(payload);
-    res.render("dashboard", { user: userInfo });
+  const payload = Buffer.from(req.appSession.id_token.split('.')[1], 'base64').toString('utf-8');
+  const userInfo = JSON.parse(payload);
+  res.render('dashboard', { user: userInfo });
   //}
 });
 
@@ -85,11 +92,13 @@ if (openIdClient.Issuer.defaultHttpOptions) {
   openIdClient.Issuer.defaultHttpOptions.timeout = 20000;
 }
 
-oidc.on("ready", () => {
-  console.log("Server running on port: " + PORT);
+oidc.on('ready', () => {
+  // eslint-disable-next-line no-console
+  console.log('Server running on port: ' + PORT);
   app.listen(parseInt(PORT));
 });
 
-oidc.on("error", err => {
+oidc.on('error', err => {
+  // eslint-disable-next-line no-console
   console.error(err);
 });

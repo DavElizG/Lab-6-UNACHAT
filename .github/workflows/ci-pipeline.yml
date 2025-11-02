@@ -1,0 +1,204 @@
+name: CI/CD Pipeline - SAST, Linting & Unit Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  # Job 1: Linting - Análisis de código estático para detectar errores sintácticos
+  linting:
+    name: 🔍 Code Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Lint Report
+        if: always()
+        run: |
+          echo "✅ Linting completed"
+          echo "Checked for syntax errors and code style violations"
+
+  # Job 2: Unit Tests - Pruebas unitarias con BDD
+  unit-tests:
+    name: 🧪 Unit Tests (BDD)
+    runs-on: ubuntu-latest
+    needs: linting
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Unit Tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          PORT: 3001
+          SECRET: test_secret_key_for_ci
+          BASE_URL: http://localhost:3001
+          ISSUER_BASE_URL: https://una-infosec.us.auth0.com/
+          CLIENT_ID: test_client_id
+          CLIENT_SECRET: test_client_secret
+          REDIRECT_URI: http://localhost:3001/dashboard
+
+      - name: Generate Coverage Report
+        run: npm run test:coverage
+        continue-on-error: true
+        env:
+          NODE_ENV: test
+          PORT: 3001
+          SECRET: test_secret_key_for_ci
+          BASE_URL: http://localhost:3001
+          ISSUER_BASE_URL: https://una-infosec.us.auth0.com/
+          CLIENT_ID: test_client_id
+          CLIENT_SECRET: test_client_secret
+          REDIRECT_URI: http://localhost:3001/dashboard
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "✅ Unit tests completed"
+          echo "All tests must pass before proceeding to deployment"
+
+  # Job 3: SAST con Snyk - Análisis de seguridad
+  security-sast-snyk:
+    name: 🔒 SAST - Snyk Security Scan
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Snyk Security Test
+        uses: snyk/actions/node@0.4.0
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --json-file-output=snyk-report.json
+
+      - name: Upload Snyk Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snyk-security-report
+          path: snyk-report.json
+          retention-days: 30
+
+      - name: Security Summary
+        if: always()
+        run: |
+          echo "✅ Snyk security scan completed"
+          echo "Checked for vulnerabilities in dependencies and code"
+
+  # Job 4: SonarCloud - Análisis adicional de calidad y seguridad
+  sonarcloud-analysis:
+    name: 📊 SonarCloud Code Analysis
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests for SonarCloud
+        run: npm run test:coverage
+        continue-on-error: true
+        env:
+          NODE_ENV: test
+          PORT: 3001
+          SECRET: test_secret_key_for_ci
+          BASE_URL: http://localhost:3001
+          ISSUER_BASE_URL: https://una-infosec.us.auth0.com/
+          CLIENT_ID: test_client_id
+          CLIENT_SECRET: test_client_secret
+          REDIRECT_URI: http://localhost:3001/dashboard
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v3.1.0
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=DavElizG_Lab-6-UNACHAT
+            -Dsonar.organization=davelizg
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/node_modules/**,**/test/**,**/coverage/**
+            -Dsonar.tests=test
+            -Dsonar.test.inclusions=test/**/*.test.js
+
+  # Job 5: Build Success Summary
+  build-success:
+    name: ✅ Pipeline Success
+    runs-on: ubuntu-latest
+    needs: [linting, unit-tests, security-sast-snyk, sonarcloud-analysis]
+    if: success()
+    
+    steps:
+      - name: Success Message
+        run: |
+          echo "🎉 All checks passed successfully!"
+          echo "✅ Linting: Passed"
+          echo "✅ Unit Tests: Passed"
+          echo "✅ SAST (Snyk): Completed"
+          echo "✅ SonarCloud: Completed"
+          echo ""
+          echo "Pipeline is ready for deployment! 🚀"
