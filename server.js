@@ -93,10 +93,12 @@ if (openIdClient.Issuer.defaultHttpOptions) {
 }
 
 oidc.on('ready', () => {
+  // eslint-disable-next-line no-console
   console.log('Server running on port: ' + PORT);
   app.listen(parseInt(PORT));
 });
 
 oidc.on('error', err => {
+  // eslint-disable-next-line no-console
   console.error(err);
 });
