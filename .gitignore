@@ -1,5 +1,11 @@
 .env
+.env.local
 node_modules
+coverage/
+*.log
+
+# VS Code settings (pueden contener secrets)
+.vscode/
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .github\instructions\snyk_rules.instructions.md
