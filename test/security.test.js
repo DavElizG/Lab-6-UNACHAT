@@ -1,5 +1,3 @@
-/* eslint-env mocha */
-/* global describe, it, URL */
 const { expect } = require('chai');
 
 describe('Security Best Practices Tests', function () {

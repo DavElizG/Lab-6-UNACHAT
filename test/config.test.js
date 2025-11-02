@@ -1,5 +1,3 @@
-/* eslint-env mocha */
-/* global describe, it, before */
 const { expect } = require('chai');
 
 describe('Application Configuration Tests', function () {
