@@ -1,0 +1,39 @@
+# Node modules
+node_modules
+npm-debug.log
+
+# Environment files (sensitive data)
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# Testing
+coverage
+test
+*.test.js
+.nyc_output
+
+# Documentation
+*.md
+docs
+
+# CI/CD
+.github
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
