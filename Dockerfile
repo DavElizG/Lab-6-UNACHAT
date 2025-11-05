@@ -20,18 +20,18 @@ RUN addgroup -g 1001 -S nodejs && \
 # Set working directory
 WORKDIR /app
 
-# Copy dependencies from builder
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+# Copy dependencies from builder as root first
+COPY --from=builder /app/node_modules ./node_modules
 
-# Copy application code (specific files only for security)
-COPY --chown=nodejs:nodejs package*.json ./
-COPY --chown=nodejs:nodejs server.js ./
-COPY --chown=nodejs:nodejs static ./static
-COPY --chown=nodejs:nodejs views ./views
+# Copy application code as root first
+COPY package*.json ./
+COPY server.js ./
+COPY static ./static
+COPY views ./views
 
-# Set read-only permissions for security
-RUN chmod -R 555 /app && \
-    chmod -R 555 /app/node_modules
+# Set secure permissions: read-only for all, owned by nodejs user
+RUN chown -R nodejs:nodejs /app && \
+    chmod -R 555 /app
 
 # Switch to non-root user
 USER nodejs
