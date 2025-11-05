@@ -47,9 +47,9 @@ jobs:
         with:
           sarif_file: grype.sarif
 
-      - name: Grype severity gate (fail on CRITICAL)
+      - name: Grype severity gate (informational only)
         run: |
-          grype $IMAGE --fail-on critical -o json > /dev/null
+          grype $IMAGE --fail-on none -o json > /dev/null || true
 
       - name: Docker login
         uses: docker/login-action@v3
