@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies with security flags
+RUN npm ci --only=production --ignore-scripts
 
 # Final stage - minimal runtime image
 FROM node:18-alpine
@@ -23,8 +23,11 @@ WORKDIR /app
 # Copy dependencies from builder
 COPY --from=builder /app/node_modules ./node_modules
 
-# Copy application code
-COPY --chown=nodejs:nodejs . .
+# Copy application code (specific files only for security)
+COPY --chown=nodejs:nodejs package*.json ./
+COPY --chown=nodejs:nodejs server.js ./
+COPY --chown=nodejs:nodejs static ./static
+COPY --chown=nodejs:nodejs views ./views
 
 # Switch to non-root user
 USER nodejs
